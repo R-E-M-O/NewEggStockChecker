@@ -1,6 +1,7 @@
 import requests
 import time
 import random
+import json
 from datetime import datetime
 
 # Nintendo switch, PS5, Xbox Series S, MSI GAMING PC, Corsair Gaming PC, ROG Gaming PC
@@ -15,9 +16,12 @@ urls = [
 
 # handles http get requests
 def checkNeweggStock(url):
-    r = requests.get(url, timeout=5)
+    local = "http://localhost:5000/api/v1/request"
+    jsonData = {"apikey": "cffb0029-bbfe-40c0-8f20-fc76c15fd51b",
+                "url": url}
+    response = requests.post(local, json=jsonData)
     # string holding all HTML code
-    return str(r.content)
+    return str(response.content)
 
 
 def newEgg(url):
@@ -45,8 +49,6 @@ def newEgg(url):
     else:
         print(inStockLog)
 
-def printLogs(log):
-    print(log)
 
 while True:
     try:

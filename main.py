@@ -19,13 +19,17 @@ urls = [
 # array to store each product log
 logs = ["", "", "", "", "", ""]
 
+
 # handles http get requests, uses mutex lock to isolate the critical section
 def checkNeweggStock(url, lock):
+    local = "http://localhost:5000/api/v1/request"
+    jsonData = {"apikey": "cffb0029-bbfe-40c0-8f20-fc76c15fd51b",
+                "url": url}
     lock.acquire()
-    r = requests.get(url, timeout=5)
+    response = requests.post(local, json=jsonData)
     lock.release()
     # string holding all HTML code
-    return str(r.content)
+    return str(response.content)
 
 
 def newEgg(url, lock):
@@ -54,9 +58,11 @@ def newEgg(url, lock):
     else:
         logs[urls.index(url)] = inStockLog
 
+
 # prints each stock log
 def printLogs(log):
     print(log)
+
 
 while True:
     # any error that may occur will either be caused by spam detection or website traffic/outage
