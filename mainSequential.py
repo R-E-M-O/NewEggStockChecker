@@ -33,19 +33,19 @@ def newEgg(url):
                            10:htmlResponse.index('"Stock"') - 1]
     price = htmlResponse[htmlResponse.index('"FinalPrice":') + 13:htmlResponse.index('"Instock"') - 1]
     shipping = htmlResponse[htmlResponse.index('"ShippingCharge"') + 17:htmlResponse.index('"VFAvail"') - 1]
-    quantity = int(htmlResponse[htmlResponse.index('"Stock":') + 8:htmlResponse.index('"StockForCombo"') - 1])
-    gpuName = htmlResponse[htmlResponse.index('<title>') + 7:htmlResponse.index('</title>') - 13]
+    quantity = int(htmlResponse[htmlResponse.index('"Qty":') + 6:htmlResponse.index('"UnitCost"') - 1])
+    productName = htmlResponse[htmlResponse.index('<title>') + 7:htmlResponse.index('</title>') - 13]
 
     # timezone formatting
     utcTime = datetime.utcnow()
     formattedEDT = utcTime.strftime('%Y-%m-%d %H:%M:%S')
 
     for i in range(len(urls)):
-        inStockLog = formattedEDT + " NEWEGG - " + gpuName + ' | Price: $' + str(price) + ' Shipping Cost: $' + str(
+        inStockLog = formattedEDT + " NEWEGG - " + productName + ' | Price: $' + str(price) + ' Shipping Cost: $' + str(
             shipping) + ' Quantity: ' + str(quantity)
 
     if inStock == 'false':
-        print(formattedEDT + " NEWEGG - " + gpuName + "OUT OF STOCK")
+        print(formattedEDT + " NEWEGG - " + productName + " | OUT OF STOCK")
     else:
         print(inStockLog)
 
