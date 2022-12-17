@@ -20,6 +20,12 @@ urls = [
 logs = ["", "", "", "", "", ""]
 
 
+def getTime():
+    # timezone formatting
+    utcTime = datetime.utcnow()
+    return utcTime.strftime('%Y-%m-%d %H:%M:%S')
+
+
 # handles http get requests, uses mutex lock to isolate the critical section
 def checkNeweggStock(url, lock):
     local = "http://localhost:5000/api/v1/request"
@@ -37,26 +43,22 @@ def newEgg(url, lock):
     htmlResponse = checkNeweggStock(url, lock)
 
     # status of labels
-    inStock = htmlResponse[htmlResponse.index('"Instock"') +
-                           10:htmlResponse.index('"Stock"') - 1]
+    inStock = bool(htmlResponse[htmlResponse.index('"Instock"') +
+                           10:htmlResponse.index('"Stock"') - 1])
     price = htmlResponse[htmlResponse.index('"FinalPrice":') + 13:htmlResponse.index('"Instock"') - 1]
     shipping = htmlResponse[htmlResponse.index('"ShippingCharge"') + 17:htmlResponse.index('"VFAvail"') - 1]
     quantity = int(htmlResponse[htmlResponse.index('"Qty":')+6:htmlResponse.index('"UnitCost"') - 1])
     productName = htmlResponse[htmlResponse.index('<title>') + 7:htmlResponse.index('</title>') - 13]
 
-    # timezone formatting
-    utcTime = datetime.utcnow()
-    formattedEDT = utcTime.strftime('%Y-%m-%d %H:%M:%S')
+    currentTime = getTime()
 
-    # combine the parsed string fragments together
-    inStockLog = formattedEDT + " NEWEGG - " + productName + ' | Price: $' + str(price) + ' Shipping Cost: $' + str(
+    if inStock:
+        # combine the parsed string fragments together
+        inStockLog = currentTime + " NEWEGG - " + productName + ' | Price: $' + str(price) + ' Shipping Cost: $' + str(
             shipping) + ' Quantity: ' + str(quantity)
-
-
-    if inStock == 'false':
-        logs[urls.index(url)] = formattedEDT + " NEWEGG - " + productName + " | OUT OF STOCK"
-    else:
         logs[urls.index(url)] = inStockLog
+    else:
+        logs[urls.index(url)] = currentTime + " NEWEGG - " + productName + " | OUT OF STOCK"
 
 
 # prints each stock log
