@@ -23,19 +23,17 @@ urlChunks = np.array_split(urls, numThreads)
 logs = ["", "", "", "", "", ""]
 
 
-
-
-
 def getTime():
     # timezone formatting
     utcTime = datetime.utcnow()
     return utcTime.strftime('%Y-%m-%d %H:%M:%S')
 
 
+
 # handles http get requests, uses mutex lock to isolate the critical section
 def checkNeweggStock(url, lock):
     local = "http://localhost:5000/api/v1/request"
-    jsonData = {"apikey": "###",
+    jsonData = {"apikey": "cffb0029-bbfe-40c0-8f20-fc76c15fd51b",
                 "url": url}
     #lock.acquire()
     response = requests.post(local, json=jsonData)
@@ -45,8 +43,8 @@ def checkNeweggStock(url, lock):
     return str(response.content)
 
 
+
 def newEgg(lock, urlChunk, tid):
-    
     # Loop through the URLs array for this thread
     for i in range(len(urlChunk)):
         lock.acquire()
@@ -77,11 +75,11 @@ def newEgg(lock, urlChunk, tid):
     
 
 
-
 # prints logs in parallel
 def printLogs(logChunk):
     for i in range(len(logChunk)):
         print(logChunk[i])
+
 
 
 # will not let numThreads exceed the number of urls; waste of resources
@@ -95,30 +93,25 @@ while True:
         lock = threading.Lock()
 
         # create threads to handle each url
-        for i in range(numThreads
-    ):
+        for i in range(numThreads):
             thread = threading.Thread(target=newEgg, args=(lock, urlChunks[i], i))
             thread.start()
 
         # joins threads together when done. newEgg() will not run anymore in this iteration
-        for i in range(numThreads
-    ):
+        for i in range(numThreads):
             thread.join()
 
         # logs are split into chunks to be printed by threads in parallel
-        logChunks = np.array_split(logs, numThreads
-    )
+        logChunks = np.array_split(logs, numThreads)
 
         # now the threads are utilized to print messages to console in parallel
-        for i in range(numThreads
-    ):
+        for i in range(numThreads):
             thread = threading.Thread(target=printLogs, args=(logChunks[i], ))
             thread.start()
             
 
         # ensures program will not advance until all item stock messages are printed, joins threads together
-        for i in range(numThreads
-    ):
+        for i in range(numThreads):
             thread.join()
 
         print('------------------------------------')    
