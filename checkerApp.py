@@ -34,7 +34,13 @@ productName = ""
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 600)
+        
+        #set MainWindow minimum size to 800x600
+        MainWindow.setMinimumSize(QtCore.QSize(800, 600))
+
+        #set MainWindow maximum size to 1200x720
+        MainWindow.setMaximumSize(QtCore.QSize(1200, 720))
+        
 
         # set up the main window
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -225,7 +231,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "REMO's Stock Checker"))
         self.startButton.setText(_translate("MainWindow", "Start"))
         self.stopButton.setText(_translate("MainWindow", "Stop"))
         self.addButton.setText(_translate("MainWindow", "Add"))
@@ -319,9 +325,8 @@ def checkThreadCount(myWindow):
 
 
 def getTime():
-    # timezone formatting
-    utcTime = datetime.utcnow()
-    return utcTime.strftime('%Y-%m-%d %H:%M:%S')
+    # timezone formatting 12 hour clock with AM/PM and timezone
+    return datetime.now().strftime("%I:%M:%S %p %Z")
 
 # handles http get requests, uses mutex lock to isolate the critical section
 def checkNeweggStock(url):
@@ -389,9 +394,6 @@ def newEgg(lock, urlChunk, tid, myWindow):
             # Store the log message in the appropriate index of the logs array
             logs[(len(urlChunk)*tid) + i] = outOfStockLog
         lock.release()
-
-
-
 
 
 if __name__ == "__main__":
