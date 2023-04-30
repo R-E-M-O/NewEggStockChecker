@@ -15,6 +15,7 @@ import requests
 import random
 from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QApplication
 
 numThreads : int
 
@@ -27,79 +28,112 @@ logs = []
 
 stopButtonPressed = False
 
+productName = ""
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(800, 600)
+
+        # set up the main window
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.stopButton = QtWidgets.QPushButton(self.centralwidget)
+
+        # set up the stop button
+        self.stopButton = QtWidgets.QPushButton(self.centralwidget, clicked=lambda: self.stopButtonClicked())
         self.stopButton.setGeometry(QtCore.QRect(110, 40, 75, 23))
         self.stopButton.setObjectName("stopButton")
+
+        # set up the logs output
         self.logsOutput = QtWidgets.QTextEdit(self.centralwidget, readOnly=True)
         self.logsOutput.setGeometry(QtCore.QRect(410, 20, 381, 531))
         self.logsOutput.setTextInteractionFlags(QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
         self.logsOutput.setObjectName("logsOutput")
+
+        # set up the start button
         self.startButton = QtWidgets.QPushButton(self.centralwidget, clicked=lambda: self.startButtonClicked())
         self.startButton.setGeometry(QtCore.QRect(30, 40, 75, 23))
         self.startButton.setObjectName("startButton")
+
+        # set up the list of urls
         self.urlsView = QtWidgets.QListView(self.centralwidget)
         self.urlsView.setGeometry(QtCore.QRect(30, 350, 321, 192))
         self.urlsView.setUniformItemSizes(False)
         self.urlsView.setObjectName("urlsView")
+
+        # set up the url input
         self.url_input = QtWidgets.QTextEdit(self.centralwidget)
         self.url_input.setGeometry(QtCore.QRect(30, 310, 321, 31))
         self.url_input.setAcceptDrops(True)
         self.url_input.setInputMethodHints(QtCore.Qt.ImhMultiLine|QtCore.Qt.ImhUrlCharactersOnly)
         self.url_input.setAcceptRichText(False)
         self.url_input.setObjectName("url_input")
+
+        # set up the add button
         self.addButton = QtWidgets.QPushButton(self.centralwidget, clicked=lambda: self.addUrl())
         self.addButton.setGeometry(QtCore.QRect(30, 250, 75, 23))
         self.addButton.setObjectName("addButton")
+
+        # set up the delete button
         self.deleteButton = QtWidgets.QPushButton(self.centralwidget, clicked=lambda: self.deleteUrl())
         self.deleteButton.setEnabled(True)
         self.deleteButton.setGeometry(QtCore.QRect(110, 250, 75, 23))
         self.deleteButton.setObjectName("deleteButton")
+
+        # set up the radio button group
         self.radioButtonGroup = QtWidgets.QButtonGroup()
         self.radioButtonGroup.setObjectName("radioButtonGroup")
         self.radioButtonGroup.setExclusive(True)
+
+        # set up the radio buttons
         self.url0_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.url0_radioButton.setGeometry(QtCore.QRect(40, 360, 82, 17))
+        self.url0_radioButton.setGeometry(QtCore.QRect(40, 360, 300, 17))
         self.url0_radioButton.setObjectName("url0_radioButton")
         self.url1_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.url1_radioButton.setGeometry(QtCore.QRect(40, 380, 82, 17))
+        self.url1_radioButton.setGeometry(QtCore.QRect(40, 380, 300, 17))
         self.url1_radioButton.setObjectName("url1_radioButton")
         self.url2_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.url2_radioButton.setGeometry(QtCore.QRect(40, 400, 82, 17))
+        self.url2_radioButton.setGeometry(QtCore.QRect(40, 400, 300, 17))
         self.url2_radioButton.setObjectName("url2_radioButton")
         self.url3_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.url3_radioButton.setGeometry(QtCore.QRect(40, 420, 82, 17))
+        self.url3_radioButton.setGeometry(QtCore.QRect(40, 420, 300, 17))
         self.url3_radioButton.setObjectName("url3_radioButton")
         self.url4_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.url4_radioButton.setGeometry(QtCore.QRect(40, 440, 82, 17))
+        self.url4_radioButton.setGeometry(QtCore.QRect(40, 440, 300, 17))
         self.url4_radioButton.setObjectName("url4_radioButton")
         self.url5_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.url5_radioButton.setGeometry(QtCore.QRect(40, 460, 82, 17))
+        self.url5_radioButton.setGeometry(QtCore.QRect(40, 460, 300, 17))
         self.url5_radioButton.setObjectName("url5_radioButton")
+
+        #add the radio buttons to the group
         self.radioButtonGroup.addButton(self.url0_radioButton)
         self.radioButtonGroup.addButton(self.url1_radioButton)
         self.radioButtonGroup.addButton(self.url2_radioButton)
         self.radioButtonGroup.addButton(self.url3_radioButton)
         self.radioButtonGroup.addButton(self.url4_radioButton)
         self.radioButtonGroup.addButton(self.url5_radioButton)
+
+        # set up the thread count spin box
         self.threadSpinBox = QtWidgets.QSpinBox(self.centralwidget)
         self.threadSpinBox.valueChanged.connect(self.updateNumThreads)
         self.threadSpinBox.setGeometry(QtCore.QRect(30, 70, 42, 22))
-        self.threadSpinBox.setAccessibleName("")
-        self.threadSpinBox.setSuffix("")
         self.threadSpinBox.setMinimum(1)
         self.threadSpinBox.setMaximum(4)
         self.threadSpinBox.setObjectName("threadSpinBox")
+
+        # set up the thread count label
         self.threadCountLabel = QtWidgets.QLabel(self.centralwidget)
         self.threadCountLabel.setEnabled(True)
         self.threadCountLabel.setGeometry(QtCore.QRect(80, 70, 71, 16))
         self.threadCountLabel.setObjectName("threadCountLabel")
+
+        # set up the QTimer
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.stockChecker)
+
+
+        # misc. setup
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -110,17 +144,36 @@ class Ui_MainWindow(object):
 
     #function that starts stockChecker
     def startButtonClicked(self):
-        #get urls as an array from the listview
-        global urls
-        #get thread count from spinbox
-        global numThreads
-        #get stop button status
         global stopButtonPressed
+        stopButtonPressed = False
+        #disable start button
+        self.startButton.setEnabled(False)
+        #disable add button
+        self.addButton.setEnabled(False)
+        #disable delete button
+        self.deleteButton.setEnabled(False)
+        #disable thread spinbox
+        self.threadSpinBox.setEnabled(False)
+        #disable url input
+        self.url_input.setEnabled(False)
+        #enable stop button
+        self.stopButton.setEnabled(True)
+        
+        # run stockChecker every random amount of time between 3.0 to 6.0 seconds
+        # theoretically, less likely to activate website captcha that would break the program
+        self.timer.setInterval(int(random.uniform(3000, 6000)))
+        self.timer.start()
+
+        
+    def stockChecker(self):
+        global urls
+        global numThreads
+        global logs
 
         #split urls into Chunks
         urlChunks = np.array_split(urls, numThreads)
-
-        global logs
+        
+        #initialize logs
         logs = ["" for i in range(len(urls))]
 
         # any error that may occur will either be caused by spam detection or website traffic/outage
@@ -130,7 +183,7 @@ class Ui_MainWindow(object):
 
             # create threads to handle each url
             for i in range(numThreads):
-                thread = threading.Thread(target=newEgg, args=(lock, urlChunks[i], i))
+                thread = threading.Thread(target=newEgg, args=(lock, urlChunks[i], i, self,))
                 thread.start()
 
             # joins threads together when done. newEgg() will not run anymore in this iteration
@@ -139,19 +192,36 @@ class Ui_MainWindow(object):
 
             # update logsOutput
             self.updateLogsOutput()
-    
-
 
         except Exception as e:
             # handles any error that may occur as stated above, and quits the program accordingly.
-            print('Detected by captcha! Exiting program.')
-            print(e)
-            quit()
+            self.updateLogsOutput('ERROR: Caught by Captcha, or the url is invalid!')
+            self.stopButtonClicked()
 
+        
+        #let program process events while running
+        QApplication.processEvents()
+        
 
-        # program waits a random amount of time between 3.0 to 6.0 seconds
-        # theoretically, less likely to activate website captcha that would break the program
-        time.sleep(random.uniform(3, 6))
+    def stopButtonClicked(self):
+        global stopButtonPressed
+        stopButtonPressed = True
+        #disable stop button
+        self.stopButton.setEnabled(False)
+        #enable start button
+        self.startButton.setEnabled(True)
+        #enable add button
+        self.addButton.setEnabled(True)
+        #enable delete button
+        self.deleteButton.setEnabled(True)
+        #enable thread spinbox
+        self.threadSpinBox.setEnabled(True)
+        #enable url input
+        self.url_input.setEnabled(True)
+
+        #stop stockChecker
+        self.timer.stop()
+
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -173,25 +243,52 @@ class Ui_MainWindow(object):
         #get url from url_input
         global urls
         #add url to urlsView
-        urls.append(self.url_input.toPlainText())
         #add url to the first empty url_radioButton
         for radioButton in self.radioButtonGroup.buttons():
-            if radioButton.text() == "No URL":
-                radioButton.setText(self.url_input.toPlainText())
-                print("hello")
+            if (radioButton.text() == "No URL") & (self.url_input.toPlainText() != ""):
+                urls.append(self.url_input.toPlainText())
+                self.update_urlsViewFlagged(addOrDelete= 1)
+                #set threadSpinBox maximum to the number of urls
+                self.threadSpinBox.setMaximum(len(urls))
                 break
+        
+    
         self.url_input.clear()
     
     #function that deletes the selected url from the listview
     def deleteUrl(self):
         global urls
         #delete url from urlsView
-        urls.remove(self.url_input.toPlainText())
+        
         #delete url from based on radio button selected
         for radioButton in self.radioButtonGroup.buttons():
             if radioButton.isChecked() :
-                radioButton.setText("No URL")
+                urls.remove(radioButton.text())
+                self.update_urlsViewFlagged(addOrDelete= 0)
                 break
+        self.url_input.clear()
+        
+    #function that updates the urlsView if productName is found    
+    def update_urlsView(self, url, name):
+        for radioButton in self.radioButtonGroup.buttons():
+            if radioButton.text() == url:
+                radioButton.setText(name)
+                break
+
+    def update_urlsViewFlagged(self, addOrDelete):
+        #addOrDelete = 1 if adding, 0 if deleting
+        if addOrDelete == 1:
+            #add url to the first empty url_radioButton
+            for radioButton in self.radioButtonGroup.buttons():
+                if radioButton.text() == "No URL":
+                    radioButton.setText(self.url_input.toPlainText())
+                    break
+        else:
+            #delete url from based on radio button selected
+            for radioButton in self.radioButtonGroup.buttons():
+                if radioButton.isChecked():
+                    radioButton.setText("No URL")
+                    break
 
 
     #function that updates the numThreads variable
@@ -208,13 +305,16 @@ class Ui_MainWindow(object):
     def updateLogsOutput(self):
         global logs
         self.logsOutput.clear()
-        self.logsOutput.append("\n".join(logs))
+        self.logsOutput.append("\n\n".join(logs))
 
 
-    
 
-    
         
+def checkThreadCount(myWindow):
+    global numThreads
+    if numThreads > len(urls):
+        numThreads = len(urls)
+        myWindow.threadSpinBox.setValue(numThreads)
 
 
 
@@ -224,37 +324,56 @@ def getTime():
     return utcTime.strftime('%Y-%m-%d %H:%M:%S')
 
 # handles http get requests, uses mutex lock to isolate the critical section
-def checkNeweggStock(url, lock):
+def checkNeweggStock(url):
     local = "http://localhost:5000/api/v1/request"
     jsonData = {"apikey": "cffb0029-bbfe-40c0-8f20-fc76c15fd51b",
                 "url": url}
-    #lock.acquire()
     response = requests.post(local, json=jsonData)
-    #lock.release()
-
-    #writes html response to a file
-    with open('htmlResponse.txt', 'w') as f:
-        f.write(str(response.content))
-
 
     # string holding all HTML code
     return str(response.content)
 
 
 # function that checks the stock of a given URL
-def newEgg(lock, urlChunk, tid):
+def newEgg(lock, urlChunk, tid, myWindow):
     # Loop through the URLs array for this thread
     for i in range(len(urlChunk)):
         lock.acquire()
         # HTML Response Data
-        htmlResponse = checkNeweggStock(urlChunk[i], lock)
+        htmlResponse = checkNeweggStock(urlChunk[i])
 
         # Parse the relevant information from the HTML response
-        inStock = bool(htmlResponse[htmlResponse.index('"Instock"') + 10:htmlResponse.index('"Stock"') - 1])
-        price = htmlResponse[htmlResponse.index('"FinalPrice":') + 13:htmlResponse.index('"Instock"') - 1]
-        shipping = htmlResponse[htmlResponse.index('"ShippingCharge"') + 17:htmlResponse.index('"VFAvail"') - 1]
-        quantity = int(htmlResponse[htmlResponse.index('"Qty":')+6:htmlResponse.index('"UnitCost"') - 1])
-        productName = htmlResponse[htmlResponse.index('<title>') + 7:htmlResponse.index('</title>') - 13]
+        try: 
+            global productName
+            productName = htmlResponse[htmlResponse.index('<title>') + 7:htmlResponse.index('</title>') - 13]
+            #find the radio button that matches the url
+            for radioButton in myWindow.radioButtonGroup.buttons():
+                if radioButton.text() == urlChunk[i]:
+                    #update the radio button with the product name
+                    myWindow.update_urlsView(urlChunk[i], productName)
+                    break
+        except ValueError:
+            inStockLog = f"{currentTime} ERROR: productName NOT FOUND"
+        
+        try:
+            price = htmlResponse[htmlResponse.index('"FinalPrice":') + 13:htmlResponse.index('"Instock"') - 1]
+        except ValueError:
+            inStockLog = f"{currentTime} ERROR: price NOT FOUND"
+        
+        try:
+            shipping = htmlResponse[htmlResponse.index('"ShippingCharge"') + 17:htmlResponse.index('"VFAvail"') - 1]
+        except ValueError:
+            inStockLog = f"{currentTime} ERROR: shipping NOT FOUND"
+
+        try:
+            quantity = int(htmlResponse[htmlResponse.index('"Qty":')+6:htmlResponse.index('"UnitCost"') - 1])
+        except ValueError:
+            inStockLog = f"{currentTime} ERROR: quantity NOT FOUND"
+
+        try:
+            inStock = bool(htmlResponse[htmlResponse.index('"Instock"') + 10:htmlResponse.index('"Stock"') - 1])
+        except ValueError:
+            inStockLog = f"{currentTime} ERROR: inStock NOT FOUND"
 
         currentTime = getTime()
 
