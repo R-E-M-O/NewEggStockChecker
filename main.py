@@ -42,6 +42,11 @@ def checkNeweggStock(url, lock):
     # string holding all HTML code
     return str(response.content)
 
+def writeFile (log):
+    f = open("log.html", "a")
+    f.write(log + "\n")
+    f.close()
+
 
 
 def newEgg(lock, urlChunk, tid):
@@ -50,6 +55,8 @@ def newEgg(lock, urlChunk, tid):
         lock.acquire()
         # HTML Response Data
         htmlResponse = checkNeweggStock(urlChunk[i], lock)
+
+        writeFile(htmlResponse)
 
         # Parse the relevant information from the HTML response
         inStock = bool(htmlResponse[htmlResponse.index('"Instock"') + 10:htmlResponse.index('"Stock"') - 1])

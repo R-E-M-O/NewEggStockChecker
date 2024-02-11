@@ -9,10 +9,10 @@
 
 
 import threading
-import numpy as np
 import requests
 import random
 from datetime import datetime
+from bs4 import BeautifulSoup
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QApplication
 
@@ -20,9 +20,15 @@ num_threads : int
 
 # array of urls to check
 URLs = []
+url_queue = []
+
+
+#array of url names
+URL_names = []
 
 # array to store each product log
 logs = []
+logs.queue = []
 
 stop_checking = False
 
@@ -48,6 +54,8 @@ class Ui_MainWindow(object):
         self.stop_button = QtWidgets.QPushButton(self.centralwidget, clicked=lambda: self.stop_button_clicked())
         self.stop_button.setGeometry(QtCore.QRect(110, 40, 75, 23))
         self.stop_button.setObjectName("stop_button")
+        # set stop button to disabled by default
+        self.stop_button.setEnabled(False)
 
         # set up the logs output
         self.logs_output = QtWidgets.QTextEdit(self.centralwidget, readOnly=True)
@@ -84,6 +92,8 @@ class Ui_MainWindow(object):
         self.delete_button.setEnabled(True)
         self.delete_button.setGeometry(QtCore.QRect(110, 250, 75, 23))
         self.delete_button.setObjectName("delete_button")
+        # set delete button to disabled by default
+        self.delete_button.setEnabled(False)
 
         # set up the radio button group
         self.radio_button_group = QtWidgets.QButtonGroup()
@@ -133,7 +143,7 @@ class Ui_MainWindow(object):
         self.thread_count_label.setObjectName("thread_count_label")
 
         # set up the QTimer
-        self.timer = QtCore.QTimer()
+        self.timer = QtCore.QTimer
         self.timer.timeout.connect(self.stock_checker)
 
 
@@ -188,9 +198,10 @@ class Ui_MainWindow(object):
         global URLs
         global num_threads
         global logs
+        
+        #split URLs into chunks evenly
+        urlChunks = [URLs[i::num_threads] for i in range(num_threads)]
 
-        #split urls into Chunks
-        urlChunks = np.array_split(URLs, num_threads)
         
         #initialize logs
         logs = ["" for i in range(len(URLs))]
@@ -242,31 +253,42 @@ class Ui_MainWindow(object):
     def add_URL(self):
         #get url from url_input
         global URLs
+        global URL_names
         #add url to urlsView
         #add url to the first empty url_radioButton
         for radio_button in self.radio_button_group.buttons():
             if (radio_button.text() == "No URL") & (self.URL_input.toPlainText() != ""):
+                # add url to urlsView
                 URLs.append(self.URL_input.toPlainText())
-                self.add_or_delete_URL(add_or_delete= 1)
+                # add product name to URL_names
+                URL_names.append(self.URL_input.toPlainText())
+                #set radio button text to url
+                radio_button.setText(self.URL_input.toPlainText())
                 #set threadSpinBox maximum to the number of urls
                 self.thread_selector.setMaximum(len(URLs))
                 break
-        
-    
         self.URL_input.clear()
+        #enable delete button if there are urls
+        self.delete_button.setEnabled(True)
     
     #function that deletes the selected url from the listview
     def delete_URL(self):
         global URLs
+        global URL_names
         #delete url from urlsView
-        
-        #delete url from based on radio button selected
         for radio_button in self.radio_button_group.buttons():
-            if radio_button.isChecked() :
-                URLs.remove(radio_button.text())
-                self.add_or_delete_URL(add_or_delete= 0)
+            if radio_button.isChecked() & (radio_button.text() != "No URL") & (self.URL_input.toPlainText() == ""):
+                #get index of url in urlsView
+                url_name_index = URL_names.index(radio_button.text())
+                #delete url from based on radio button selected
+                URLs.remove(URLs[url_name_index])
+                URL_names.remove(URL_names[url_name_index])
+                radio_button.setText("No URL")
                 break
         self.URL_input.clear()
+        #disable delete button if there are no more urls
+        if len(URLs) == 0:
+            self.delete_button.setEnabled(False)
         
     #function that updates the radio button text to the prduct name 
     def update_radio_button_text(self, URL, product_name):
@@ -274,22 +296,6 @@ class Ui_MainWindow(object):
             if radio_button.text() == URL:
                 radio_button.setText(product_name)
                 break
-
-    #function that adds or deletes a url from the radio buttons
-    def add_or_delete_URL(self, add_or_delete):
-        #addOrDelete = 1 if adding, 0 if deleting
-        if add_or_delete == 1:
-            #add url to the first empty url_radioButton
-            for radio_button in self.radio_button_group.buttons():
-                if radio_button.text() == "No URL":
-                    radio_button.setText(self.URL_input.toPlainText())
-                    break
-        else:
-            #delete url from based on radio button selected
-            for radio_button in self.radio_button_group.buttons():
-                if radio_button.isChecked():
-                    radio_button.setText("No URL")
-                    break
 
 
     #function that updates the number of threads
@@ -333,18 +339,21 @@ def parse_html_response(lock, url_chunk, tid, my_window):
 
     for i in range(len(url_chunk)):
         lock.acquire()
+        url = url_chunk[i]
+        url_index = URLs.index(url)
         # HTML Response Data
-        html_response = get_html_response(url_chunk[i])
-
+        html_response = get_html_response(url)
         # Parse the relevant information from the HTML response
         try: 
             global product_name
+            global URL_names
             product_name = html_response[html_response.index('<title>') + 7:html_response.index('</title>') - 13]
+            URL_names[url_index] = product_name
             #find the radio button that matches the url
             for radio_buttom in my_window.radio_button_group.buttons():
-                if radio_buttom.text() == url_chunk[i]:
+                if radio_buttom.text() == url:
                     #update the radio button with the product name
-                    my_window.update_radio_button_text(url_chunk[i], product_name)
+                    my_window.update_radio_button_text(url, product_name)
                     break
         except ValueError:
             in_stock_log = f"{current_time} ERROR: product_name NOT FOUND"
