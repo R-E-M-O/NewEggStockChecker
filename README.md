@@ -1,6 +1,5 @@
 Author: Omer Hyajneh\
-Date: 12/6/2022\
-I made this program to try to webscrape NewEgg url's for product info, such as price, name, instock status, stock quantity, etc.\
+Date: 9/21/2023\
+Purpose: Check item details (name, price, quantity, instock, etc) from NewEgg through a link provided to the code.\
 
-
-***DO NOT RUN THIS PROGRAM FOR MORE THAN 15 SECONDS AT A TIME. I learned the hard way...***
+***Please be respectful to NewEgg regarding their [Policy & Agreement](https://kb.newegg.com/knowledge-base/policy-agreement/) on web-scraping. This program was merely a way for me to apply various programming skills to a python application. This should not be used in any manner that violates their policies on the use of their services. Thank you.***
